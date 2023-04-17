@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+# convert PDFs to PNGs
+# usage: pngify <dir>
+# - converts all PDFs in specified directory to PNGs
+# - if newer PNG already exists, skip conversion, unless --force/-f specified
+# - use GhostScript to convert. 
+
+import argparse
+import glob
+import os
+
+parser = argparse.ArgumentParser(description='Convert all passed PDFs to PNGs.')
+parser.add_argument('files', metavar='file', nargs='+',type=str, help='Files to be converted')
+parser.add_argument('-f', '--force', help='Force re-generation', action='store_true')
+
+args = parser.parse_args()
+files = args.files
+
+# find all PDFs in dir
+# loop through PDFs. look for newer PNG file and decide whether to convert
+for pdf in files:
+    png=pdf[:-4]+'.png'
+    exe='gs -q -sDEVICE=pngalpha -o '+png+' -r300 -dUseCropBox '+pdf
+    if args.force or \
+       (os.path.exists(png) and os.path.getmtime(pdf) > os.path.getmtime(png)) or \
+       not os.path.exists(png) :
+        print("Converting "+pdf+" to "+png)
+        os.system(exe)
